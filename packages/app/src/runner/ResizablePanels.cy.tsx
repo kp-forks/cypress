@@ -24,7 +24,8 @@ const dragHandleToClientX = (panel: DraggablePanel, x: number) => {
 const slotContents = {
   panel1: () => <div class="h-full bg-emerald-100">panel1</div>,
   panel2: () => <div class="h-full bg-purple-300">panel2</div>,
-  panel3: () => <div class="flex-grow h-full bg-indigo-100">panel3</div>,
+  panel3: () => <div class="grow h-full bg-indigo-100">panel3</div>,
+  panel4: () => <div class="h-full bg-yellow-100">panel4</div>,
 }
 
 describe('<ResizablePanels />', { viewportWidth: 1500, defaultCommandTimeout: 4000 }, () => {
@@ -109,8 +110,8 @@ describe('<ResizablePanels />', { viewportWidth: 1500, defaultCommandTimeout: 40
     it('handles being offset by some distance on the left', () => {
       cy.mount(() => (
         <div class="flex">
-          <div class='bg-green-600 text-white w-100px'> 100px wide sidebar</div>
-          <div class="flex-grow h-screen">
+          <div class='bg-green-600 text-white w-[100px]'> 100px wide sidebar</div>
+          <div class="grow h-screen">
             <ResizablePanels
               maxTotalWidth={1500}
               v-slots={slotContents}
@@ -169,7 +170,7 @@ describe('<ResizablePanels />', { viewportWidth: 1500, defaultCommandTimeout: 40
       assertWidth('panel3', 550)
     })
 
-    it('Panel 3 resizes correctly when both panels are hidden', () => {
+    it('Panel 3 resizes correctly when all panels are hidden', () => {
       cy.mount(() => (
         <div class="h-screen">
           <ResizablePanels
@@ -183,6 +184,24 @@ describe('<ResizablePanels />', { viewportWidth: 1500, defaultCommandTimeout: 40
       cy.contains('panel1').should('not.be.visible')
       cy.contains('panel2').should('not.be.visible')
       assertWidth('panel3', 1500)
+    })
+
+    it('Panel 3 resizes correctly when panels 1 and 2 are hidden and panel 4 is shown', () => {
+      cy.mount(() => (
+        <div class="h-screen">
+          <ResizablePanels
+            maxTotalWidth={1500}
+            v-slots={slotContents}
+            showPanel1={false}
+            showPanel2={false}
+            showPanel4={true}
+          />
+        </div>))
+
+      cy.contains('panel1').should('not.be.visible')
+      cy.contains('panel2').should('not.be.visible')
+      cy.contains('panel4').should('be.visible')
+      assertWidth('panel3', 1200)
     })
   })
 })

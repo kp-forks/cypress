@@ -24,9 +24,11 @@ export interface RunnerUiState {
   isSpecsListOpen: boolean
   specListWidth: number
   reporterWidth: number
+  studioWidth: number
   automationStatus: AutomationStatus
   randomString: string
   hideCommandLog: boolean
+  hideRunnerUi: boolean
 }
 
 export const useRunnerUiStore = defineStore({
@@ -39,9 +41,11 @@ export const useRunnerUiStore = defineStore({
       isSpecsListOpen: false,
       specListWidth: runnerConstants.defaultSpecListWidth,
       reporterWidth: runnerConstants.defaultReporterWidth,
+      studioWidth: runnerConstants.defaultStudioWidth,
       automationStatus: automation.CONNECTING,
       randomString: `${Math.random()}`,
       hideCommandLog: window.__CYPRESS_CONFIG__.hideCommandLog,
+      hideRunnerUi: window.__CYPRESS_CONFIG__.hideRunnerUi,
     }
   },
 

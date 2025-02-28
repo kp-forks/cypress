@@ -6,7 +6,7 @@ import { useAutStore, useRunnerUiStore } from '../store'
 import { useScreenshotStore } from '../store/screenshot-store'
 import { runnerConstants } from './runner-constants'
 
-export type ResizablePanelName = 'panel1' | 'panel2' | 'panel3'
+export type ResizablePanelName = 'panel1' | 'panel2' | 'panel3' | 'panel4'
 
 export type DraggablePanel = Exclude<ResizablePanelName, 'panel3'>
 
@@ -17,6 +17,7 @@ const autMargin = 16
 // so that we only save to GQL when the resizing has ended
 const reporterWidth = ref<number>(0)
 const specListWidth = ref<number>(0)
+const studioWidth = ref<number>(0)
 
 export const useRunnerStyle = () => {
   const { width: windowWidth, height: windowHeight } = useWindowSize()
@@ -26,25 +27,29 @@ export const useRunnerStyle = () => {
   const screenshotStore = useScreenshotStore()
   const autStore = useAutStore()
 
-  const { reporterWidth: initialReporterWidth, specListWidth: initialSpecsListWidth } = runnerUIStore
+  const { reporterWidth: initialReporterWidth, specListWidth: initialSpecsListWidth, studioWidth: initialStudioWidth } = runnerUIStore
 
   reporterWidth.value = initialReporterWidth
   specListWidth.value = initialSpecsListWidth
+  studioWidth.value = initialStudioWidth
 
   const containerWidth = computed(() => {
     const miscBorders = 4
     const containerMinimum = 50
 
-    // start with just the margin since all other elements that take up width
-    // might not be there
-    let nonAutWidth = autMargin * 2
+    let nonAutWidth = 0
 
-    if (window.__CYPRESS_MODE__ === 'open') {
+    if (!isRunMode) {
       nonAutWidth += collapsedNavBarWidth
     }
 
     if (!window.__CYPRESS_CONFIG__.hideCommandLog) {
-      nonAutWidth += reporterWidth.value + specListWidth.value + miscBorders
+      // if we are not hiding the entire runner, the margins need to be added in
+      if (!window.__CYPRESS_CONFIG__.hideRunnerUi) {
+        nonAutWidth += (autMargin * 2)
+      }
+
+      nonAutWidth += reporterWidth.value + specListWidth.value + studioWidth.value + miscBorders
     }
 
     const containerWidth = windowWidth.value - nonAutWidth
@@ -55,7 +60,8 @@ export const useRunnerStyle = () => {
   })
 
   const containerHeight = computed(() => {
-    const nonAutHeight = autStore.specRunnerHeaderHeight + (autMargin * 2)
+    // if the entire runner is being hidden, there is not non-aut height, otherwise we need to account for the header and margins
+    const nonAutHeight = window.__CYPRESS_CONFIG__.hideRunnerUi ? 0 : autStore.specRunnerHeaderHeight + (autMargin * 2)
 
     return windowHeight.value - nonAutHeight
   })
@@ -110,17 +116,21 @@ export const useRunnerStyle = () => {
 export function useResizablePanels () {
   const preferences = usePreferences()
 
-  const handleResizeEnd = (panel: DraggablePanel) => {
+  const handleResizeEnd = async (panel: DraggablePanel) => {
     if (panel === 'panel1') {
-      preferences.update('specListWidth', specListWidth.value)
+      await preferences.update('specListWidth', specListWidth.value)
+    } else if (panel === 'panel4') {
+      await preferences.update('studioWidth', studioWidth.value)
     } else {
-      preferences.update('reporterWidth', reporterWidth.value)
+      await preferences.update('reporterWidth', reporterWidth.value)
     }
   }
 
   const handlePanelWidthUpdated = ({ panel, width }: { panel: DraggablePanel, width: number }) => {
     if (panel === 'panel1') {
       specListWidth.value = width
+    } else if (panel === 'panel4') {
+      studioWidth.value = width
     } else {
       reporterWidth.value = width
     }

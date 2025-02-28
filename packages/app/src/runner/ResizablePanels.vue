@@ -12,7 +12,7 @@
     <div
       v-show="showPanel1"
       data-cy="specs-list-panel"
-      class="h-full flex-shrink-0 z-20 relative"
+      class="h-full shrink-0 z-20 relative"
       :style="{width: `${panel1Width}px`}"
     >
       <slot
@@ -22,7 +22,7 @@
 
       <div
         data-cy="panel1ResizeHandle"
-        class="cursor-ew-resize h-full top-0 -right-6px w-10px z-30 absolute"
+        class="cursor-ew-resize h-full top-0 right-[-6px] w-[10px] z-30 absolute"
         @mousedown="handleMousedown('panel1', $event)"
       />
     </div>
@@ -30,21 +30,21 @@
     <div
       v-show="showPanel2"
       data-cy="reporter-panel"
-      class="h-full flex-shrink-0 z-10 relative"
+      class="h-full shrink-0 z-10 relative"
       :style="{width: `${panel2Width}px`}"
     >
       <slot name="panel2" />
 
       <div
         data-cy="panel2ResizeHandle"
-        class="cursor-ew-resize h-full top-0 -right-6px w-10px z-30 absolute"
+        class="cursor-ew-resize h-full top-0 right-[-6px] w-[10px] z-30 absolute"
         @mousedown="handleMousedown('panel2', $event)"
       />
     </div>
 
     <div
       data-cy="aut-panel"
-      class="flex-grow h-full bg-gray-100 relative"
+      class="grow h-full bg-gray-100 relative"
       :class="{'pointer-events-none':panel2IsDragging}"
       :style="{
         width: `${panel3width}px`
@@ -53,6 +53,18 @@
       <slot
         name="panel3"
         :width="panel3width"
+      />
+    </div>
+
+    <div
+      v-show="showPanel4"
+      data-cy="studio-panel"
+      class="h-full bg-gray-100 relative"
+      :style="{width: `${panel4Width}px`}"
+    >
+      <slot
+        name="panel4"
+        :width="panel4Width"
       />
     </div>
   </div>
@@ -72,6 +84,7 @@ import type { DraggablePanel } from './useRunnerStyle'
 const props = withDefaults(defineProps<{
   showPanel1?: boolean // specsList in runner
   showPanel2?: boolean // reporter in runner
+  showPanel4?: boolean // studio in runner
   initialPanel1Width?: number
   initialPanel2Width?: number
   minPanel1Width?: number
@@ -82,6 +95,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   showPanel1: true,
   showPanel2: true,
+  showPanel4: false,
   initialPanel1Width: runnerConstants.defaultSpecListWidth,
   initialPanel2Width: runnerConstants.defaultReporterWidth,
   minPanel1Width: 200,
@@ -146,6 +160,14 @@ const maxPanel1Width = computed(() => {
   return props.maxTotalWidth - unavailableWidth
 })
 
+const panel4Width = computed(() => {
+  if (!props.showPanel4) {
+    return 0
+  }
+
+  return runnerConstants.defaultStudioWidth
+})
+
 const panel1Width = computed(() => {
   if (!props.showPanel1) {
     return 0
@@ -155,13 +177,13 @@ const panel1Width = computed(() => {
 })
 
 const maxPanel2Width = computed(() => {
-  const unavailableWidth = panel1Width.value + props.minPanel3Width
+  const unavailableWidth = panel1Width.value + props.minPanel3Width + panel4Width.value
 
   return props.maxTotalWidth - unavailableWidth
 })
 
 const panel3width = computed(() => {
-  const panel3SpaceAvailable = props.maxTotalWidth - panel1Width.value - panel2Width.value
+  const panel3SpaceAvailable = props.maxTotalWidth - panel1Width.value - panel2Width.value - panel4Width.value
 
   // minimumWithMargin - if panel 3 would end up below the minimum allowed size
   // due to window resizing, forcing the minimum width will create a horizontal scroll
@@ -176,7 +198,7 @@ function handleResizeEnd (panel: DraggablePanel) {
 }
 
 function isNewWidthAllowed (mouseClientX: number, panel: DraggablePanel) {
-  const isMaxWidthSmall = props.maxTotalWidth < (panel1Width.value + panel2Width.value + props.minPanel3Width)
+  const isMaxWidthSmall = props.maxTotalWidth < (panel1Width.value + panel2Width.value + props.minPanel3Width + panel4Width.value)
   const fallbackWidth = 50
 
   if (panel === 'panel1') {
@@ -205,6 +227,12 @@ watchEffect(() => {
     emit('panelWidthUpdated', { panel: 'panel1', width: 0 })
   } else if (props.showPanel1) {
     emit('panelWidthUpdated', { panel: 'panel1', width: cachedPanel1Width.value })
+  }
+
+  if (!props.showPanel4) {
+    emit('panelWidthUpdated', { panel: 'panel4', width: 0 })
+  } else if (props.showPanel4) {
+    emit('panelWidthUpdated', { panel: 'panel4', width: panel4Width.value })
   }
 })
 

@@ -1,9 +1,17 @@
 import type { BannersState, Editor, MajorVersionWelcomeDismissed } from '.'
 
+export const NotifyCompletionStatuses = ['passed', 'failed', 'cancelled', 'errored'] as const
+
+export type NotifyWhenRunCompletes = typeof NotifyCompletionStatuses[number]
+
 export const defaultPreferences: AllowedState = {
   autoScrollingEnabled: true,
   isSpecsListOpen: false,
   isSideNavigationOpen: true,
+  desktopNotificationsEnabled: null,
+  notifyWhenRunStarts: false,
+  notifyWhenRunStartsFailing: true,
+  notifyWhenRunCompletes: ['failed'],
 }
 
 export const allowedKeys: Readonly<Array<keyof AllowedState>> = [
@@ -21,6 +29,7 @@ export const allowedKeys: Readonly<Array<keyof AllowedState>> = [
   'isBrowserDevToolsOpen',
   'reporterWidth',
   'specListWidth',
+  'studioWidth',
   'showedNewProjectBanner',
   'firstOpenedCypress',
   'showedStudioModal',
@@ -29,12 +38,19 @@ export const allowedKeys: Readonly<Array<keyof AllowedState>> = [
   'firstOpened',
   'lastOpened',
   'lastProjectId',
+  'lastTestCountsEvent',
   'promptsShown',
   'specFilter',
   'preferredEditorBinary',
+  'desktopNotificationsEnabled',
+  'dismissNotificationBannerUntil',
   'isSideNavigationOpen',
   'lastBrowser',
   'majorVersionWelcomeDismissed',
+  'debugSlideshowComplete',
+  'notifyWhenRunStarts',
+  'notifyWhenRunStartsFailing',
+  'notifyWhenRunCompletes',
 ] as const
 
 type Maybe<T> = T | null | undefined
@@ -55,6 +71,7 @@ export type AllowedState = Partial<{
   isBrowserDevToolsOpen: Maybe<boolean>
   reporterWidth: Maybe<number>
   specListWidth: Maybe<number>
+  studioWidth: Maybe<number>
   showedNewProjectBanner: Maybe<boolean>
   firstOpenedCypress: Maybe<number>
   showedStudioModal: Maybe<boolean>
@@ -62,6 +79,7 @@ export type AllowedState = Partial<{
   lastProjectId: Maybe<string>
   firstOpened: Maybe<number>
   lastOpened: Maybe<number>
+  lastTestCountsEvent: Maybe<number>
   promptsShown: Maybe<object>
   specFilter: Maybe<string>
   preferredEditorBinary: Maybe<string>
@@ -69,4 +87,10 @@ export type AllowedState = Partial<{
   testingType: 'e2e' | 'component'
   lastBrowser: { name: string, channel: string }
   majorVersionWelcomeDismissed: Maybe<MajorVersionWelcomeDismissed>
+  debugSlideshowComplete: Maybe<boolean>
+  desktopNotificationsEnabled: Maybe<boolean>
+  dismissNotificationBannerUntil: Maybe<Date>
+  notifyWhenRunStarts: Maybe<boolean>
+  notifyWhenRunStartsFailing: Maybe<boolean>
+  notifyWhenRunCompletes: Maybe<NotifyWhenRunCompletes[]>
 }>
